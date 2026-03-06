@@ -5,6 +5,7 @@ import json
 import argparse
 from tqdm.auto import tqdm
 import pathlib
+import torch
 
 class Dataset:
 
@@ -14,8 +15,12 @@ class Dataset:
         self.batch_size = batch_size
         # data is assumed to be a json file
         with open(data_path) as f:
-            # key: 'paper_id', value: paper data (including 'title', 'abstract')
-            self.data = json.load(f)
+            raw_data = json.load(f)
+            # Nếu data là list (như papers_clean.json), chuyển về dạng dict để ổn định logic
+            if isinstance(raw_data, list):
+                self.data = {item['paper_id']: item for item in raw_data}
+            else:
+                self.data = raw_data
 
     def __len__(self):
         return len(self.data)
@@ -25,29 +30,32 @@ class Dataset:
         batch = []
         batch_ids = []
         batch_size = self.batch_size
-        i = 0
-        for k, d in self.data.items():
-            if (i) % batch_size != 0 or i == 0:
-                batch_ids.append(k)
-                batch.append(d['title'] + ' ' + (d.get('abstract') or ''))
-            else:
+        
+        # Chạy trên CPU hay GPU (Kaggle hỗ trợ CUDA)
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        
+        for i, (k, d) in enumerate(self.data.items()):
+            batch_ids.append(k)
+            batch.append(d['title'] + ' ' + (d.get('abstract') or ''))
+            
+            if (i + 1) % batch_size == 0:
                 input_ids = self.tokenizer(batch, padding=True, truncation=True, 
                                            return_tensors="pt", max_length=self.max_length)
-                yield input_ids.to('cuda'), batch_ids
-                batch_ids = [k]
-                batch = [d['title'] + ' ' + (d.get('abstract') or '')]
-            i += 1
+                yield input_ids.to(device), batch_ids
+                batch_ids = []
+                batch = []
+        
         if len(batch) > 0:
             input_ids = self.tokenizer(batch, padding=True, truncation=True, 
                                        return_tensors="pt", max_length=self.max_length)        
-            input_ids = input_ids.to('cuda')
-            yield input_ids, batch_ids
+            yield input_ids.to(device), batch_ids
 
 class Model:
 
     def __init__(self):
         self.model = AutoModel.from_pretrained('allenai/specter')
-        self.model.to('cuda')
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.model.to(device)
         self.model.eval()
 
     def __call__(self, input_ids):
