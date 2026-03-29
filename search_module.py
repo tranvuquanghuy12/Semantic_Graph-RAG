@@ -56,9 +56,12 @@ def Graph_RAG_Search():
     query = "application of graph models in network citation and deep learning"
     print(f"\nQUERY: '{query}'")
     
-    # Bước 1: Dense Retrieval (Vector Search) - Ở đây lý tưởng nhất là dùng GAT-refined vector
+    # Lấy Vector GAT thay vì Vector thô
+    matrix_graph = parse_vector_from_csv(df_db['graph_vector'])
+    
+    # Bước 1: Dense Retrieval sử dụng GAT-refined vector! (Ăn tiền nốt ở đây)
     query_vector = text_model.encode([query])
-    similarity_scores = cosine_similarity(query_vector, matrix_base_text)[0]
+    similarity_scores = cosine_similarity(query_vector, matrix_graph)[0]
     top_1_idx = similarity_scores.argmax()
     
     top_paper_id = df_db['paper_id'].iloc[top_1_idx]
