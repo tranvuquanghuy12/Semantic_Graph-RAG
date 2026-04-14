@@ -19,6 +19,12 @@
 
 **Semantic Graph-RAG** is an advanced Retrieval-Augmented Generation (RAG) framework designed to bridge the gap between pure semantic text mapping and latent academic relationships. It introduces **Graph Attention Networks (GAT)** to model the intrinsic citation and conceptual topology between scientific papers, fundamentally upgrading how Large Language Models (LLMs) retrieve contextual information.
 
+## 🚩 Current Progress
+- [x] **Phase 1: Foundation** - 3-Pillar Architecture finalized.
+- [x] **Phase 2: Integration** - KG and GAT-refinement unified into a single Hybrid Search module.
+- [x] **Phase 3: Documentation** - System architecture and deployment guides completed.
+- [/] **Phase 4: Evaluation** - Current focus: Moving from simulated benchmarks to real-world large dataset validation (Rank A targets).
+
 ### 🔍 The Problem
 Traditional Semantic Search Engines (like base Sentence-BERT) often suffer from the **Semantic Gap** when applied to scientific literature due to:
 1.  **Contextual Blindness**: Treating documents as isolated text chunks ignores the rich, interconnected ecosystem of academic citations.
